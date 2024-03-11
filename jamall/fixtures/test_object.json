@@ -1,0 +1,11 @@
+{
+    "string": "John",
+    "numbers": [30, 40.3],
+    "true": false,
+    "utf": "New York",
+    "escapedBraces": { "\"{": "\"}" },
+    "nested": {
+        "key": "value",
+        "array": [1, 2, 3, { "key": "value" }, "⍼", null, true, "\u00A9"]
+    }
+}

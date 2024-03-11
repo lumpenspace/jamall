@@ -1,52 +1,83 @@
+from typing import Union
+from pydantic import BaseModel, Field
+import re
+import yaml
+import json
 from .json_detector import detect_json
 
-class ConvertFromJson:
-    def __init__(self, text):
-        self.text = text
-        self.json_objects = detect_json(text)
-        
+code_block_end = '```'
+code_block_start_options = ('```json','```')
+
+def strip_code_block_delimites(text: str) -> str:
+    lines = text.split('\n')
+    firstline = text.split('\n')[0]
+    lastline = text.split('\n')[-1]
+    if firstline.strip() == code_block_end:
+        lines = lines[1:]
+    if lastline in code_block_start_options:
+        lines = lines[:-1]
+    return '\n'.join(lines)
+class ConvertFromJson(BaseModel):
+    original: str = Field(alias='original')
+    json_objects: Union[list, None] = Field(default=None)
+    converted: Union[str, None] = Field(default=None)
+
+    @classmethod
+    def from_text(cls, text: str):
+        json_objects = detect_json(text)
+        instance = cls(original=text, json_objects=json_objects)
+        instance.convert()
+        return instance
+
+    @property
+    def original(self) -> str:
+        return self.original
+
+    def __str__(self) -> Union[str, None]:
+        return self.converted
+  
+    def __repr__(self) -> str:
+        return f'ConvertFromJson.from_text(text={self.original})'
+
+
     def split_text(self):
-        ## Splits the text into a list of strings delimited by the JSON objects
         split_text = []
         if self.json_objects == None:
-            return [self.text]
+            return [self.original]
+
         for i in range(len(self.json_objects)):
-            split_text.append(self.text[self.json_objects[i]['start']:self.json_objects[i]['end']])
+            if i == 0:
+                split_text.append(self.original[:self.json_objects[i]['start']-1].strip())
+            elif i < len(self.json_objects) - 1:
+                split_text.append(self.original[self.json_objects[i]['end']+1:self.json_objects[i+1]['start']-1].strip())
+        split_text.append(self.original[self.json_objects[-1]['end']+1:])
+
         return split_text
         
     def json_to_yaml(self, json_object):
         ## Converts a JSON object to a YAML object
-        if isinstance(json_object, dict):
-            yaml_object = ''
-            for key in json_object:
-                yaml_object += f'{key}: {json_object[key]}\n'
-            return yaml_object
-        elif isinstance(json_object, list):
-            yaml_object = ''
-            for item in json_object:
-                yaml_object += f'- {item}\n'
-            return yaml_object
-        else:
-            return None
+        return yaml.dump(json_object, default_flow_style=False, allow_unicode=True)
 
-    def convert(self):
+    def get_yaml_code_block(self, json_object):
+        ## Returns a YAML object in a markdown code block
+        yaml_object = self.json_to_yaml(json_object)
+        return f'\n```yaml\n{yaml_object}```\n'
+
+
+    def convert(self) -> str:
         ## Replaces the JSON strings in the text with YAML objects in markdown code blocks.
         if self.json_objects == None:
-          return self.text
+            return self.original
         split_text = self.split_text()
-        converted_text = ''
-        for i in range(len(split_text)):
-            ## if there are code block delimiters (either with hint of "json" or no hint) on the lines before and after the JSON object, we remove them
-            if i > 0 and i < len(self.json_objects):
-                if split_text[i-1].strip() == '```json' and split_text[i+1].strip() == '```':
-                    converted_text += f'{split_text[i-1]}\n'
-                    converted_text += f'{split_text[i+1]}\n'
-                    continue
-                elif split_text[i-1][-1] != '\n' or split_text[i+1][0] != '\n':
-                    converted_text += '\n'
-            if i < len(self.json_objects):
-                converted_text += f'```yaml\n{self.json_to_yaml(self.json_objects[i]["json_object"])}\n```\n'
-            converted_text += split_text[i]
 
-                  
-        return self.text
+        converted_text = ''
+        for i in range(len(self.json_objects)):
+            converted_text += strip_code_block_delimites(split_text[i])
+            json_object = self.json_objects[i]['json_object']
+            converted_text += self.get_yaml_code_block(json_object)
+        converted_text += split_text[-1]
+        self.converted = converted_text
+        return converted_text
+    
+    
+    
