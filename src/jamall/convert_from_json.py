@@ -24,16 +24,49 @@ class ConvertFromJson(BaseModel):
 
     @classmethod
     def from_text(cls, text: str):
+
+        """
+        Creates an instance of ConvertFromJson from a given text.
+
+        This method automatically detects JSON objects within the text, converts them to YAML,
+        and stores both the original text and the converted text.
+
+        Args:
+            text (str): The text containing JSON objects to be converted.
+
+        Returns:
+            ConvertFromJson: An instance of ConvertFromJson with the original and converted text.
+
+        """
         json_objects = detect_json(text)
         instance = cls(original=text, json_objects=json_objects)
         instance.convert()
         return instance
 
-    @property
-    def original(self) -> str:
+    def get_original(self) -> str:
+        """
+        Returns the original text passed to the class.
+        
+        This property allows access to the text before conversion, preserving any formatting
+        and content outside of JSON objects.
+        
+        Returns:
+            str: The original text.
+        """
         return self.original
 
     def __str__(self) -> Union[str, None]:
+        """
+        Returns the converted text with JSON objects replaced by YAML code blocks.
+
+        If the conversion has been performed, this method returns the text with all detected
+        JSON objects converted to YAML and enclosed in markdown code blocks. If no JSON objects
+        were detected or conversion has not been performed, it may return None.
+
+        Returns:
+            Union[str, None]: The text after conversion, or None if conversion was not possible.
+        """
+
         return self.converted
   
     def __repr__(self) -> str:

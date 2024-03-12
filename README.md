@@ -44,12 +44,29 @@ client.chat_completion(
 
 The `ConvertFromJson` class provides the following methods:
 
-- `from_text(text: str) -> str`
-  
-  Initialises the class from a string containing JSON objects and converts them to YAML format.
-- `__str__() -> str`
-  
-  Converts the stored JSON objects to YAML format and returns the result as a string.
-- `__repr__() -> str`
-  
-  Returns the string representation of the class instance.
+#### `from_text(text: str) -> str`
+> Creates an instance of ConvertFromJson from a given text.
+>
+>This method automatically detects JSON objects within the text, converts them to YAML,
+>and stores both the original text and the converted text.
+>Args:
+>
+>- `text` (str): The text containing JSON objects to be converted.
+>
+>Returns:
+>
+>- `ConvertFromJson (str)`: An instance of ConvertFromJson with the original and converted text.
+>
+
+#### `original_text -> str`
+>
+>The original text containing JSON objects.
+>
+
+#### `__str__() -> str`
+>
+> Converts the stored JSON objects to YAML format and returns the result as a string.
+
+#### `__repr__() -> str`
+>
+> Returns the string representation of the class instance.
