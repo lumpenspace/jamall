@@ -19,7 +19,7 @@ By using the `ConvertFromJson` class, developers can streamline the process of c
 ```bash
 ## Install from github
 pip install git+
-pip install git git+https://github.com/lumpenspace/jamall.git
+pip install git+https://github.com/lumpenspace/jamall.git
 ```
 
 ## Usage
