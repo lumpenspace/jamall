@@ -34,7 +34,7 @@ from jamall import ConvertFromJson
 messages=[{**message, "content": ConvertFromJson.from_text(message)} for message in messages];
 
 client.chat_completion(
-    messages=[{"role": "system", "content": ConvertFromJson.from_text(text_with_json)}],
+    messages=messages,
 )
 ```
 
